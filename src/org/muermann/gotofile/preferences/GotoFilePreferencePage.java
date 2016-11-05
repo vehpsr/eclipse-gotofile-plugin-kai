@@ -25,63 +25,66 @@ import org.muermann.gotofile.GotoFileE30Plugin;
 
 public class GotoFilePreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage
 {
-	//public static final String P_PATH = "pathPreference";
-	public static final String P_PACKAGEEXPLORER = "packageExplorer";
-	public static final String P_DISPLAYRESULTS = "displayResults";
-	public static final String P_FOLDERS = "folders";
-	public static final String P_FILE_EXTENSIONS = "filenames";
-	public static final String P_FOCUSINNAVIGATOR = "focusinnavigator";
+    //public static final String P_PATH = "pathPreference";
+    public static final String P_PACKAGEEXPLORER = "packageExplorer";
+    public static final String P_DISPLAYRESULTS = "displayResults";
+    public static final String P_FOLDERS = "folders";
+    public static final String P_FILE_EXTENSIONS = "filenames";
+    public static final String P_FOCUSINNAVIGATOR = "focusinnavigator";
+    public static final String P_CURENTLY_OPEN_ON_TOP = "curentlyopenontop";
 
-	public GotoFilePreferencePage()
-	{
-		super(GRID);
-		setPreferenceStore(GotoFileE30Plugin.getDefault().getPreferenceStore());
-		setDescription("GotoFile Preferences");
-		initializeDefaults();
-	}
-	/**
-	 * Sets the default values of the preferences.
-	 */
-	private void initializeDefaults()
-	{
-		IPreferenceStore store = getPreferenceStore();
-		store.setDefault(P_PACKAGEEXPLORER, false);
-		store.setDefault(P_FOCUSINNAVIGATOR, true);
-		store.setDefault(P_DISPLAYRESULTS, "compact");
-		store.setDefault(P_FOLDERS, "classes,target,bin,.git");
-		store.setDefault(P_FILE_EXTENSIONS, ".class,.jar,.obj,.exe");
-	}
+    public GotoFilePreferencePage()
+    {
+        super(GRID);
+        setPreferenceStore(GotoFileE30Plugin.getDefault().getPreferenceStore());
+        setDescription("GotoFile Preferences");
+        initializeDefaults();
+    }
+    /**
+     * Sets the default values of the preferences.
+     */
+    private void initializeDefaults()
+    {
+        IPreferenceStore store = getPreferenceStore();
+        store.setDefault(P_PACKAGEEXPLORER, false);
+        store.setDefault(P_FOCUSINNAVIGATOR, true);
+        store.setDefault(P_CURENTLY_OPEN_ON_TOP, false);
+        store.setDefault(P_DISPLAYRESULTS, "compact");
+        store.setDefault(P_FOLDERS, "classes,target,bin,.git");
+        store.setDefault(P_FILE_EXTENSIONS, ".class,.jar,.obj,.exe");
+    }
 
-	/**
-	 * Creates the field editors. Field editors are abstractions of
-	 * the common GUI blocks needed to manipulate various types
-	 * of preferences. Each field editor knows how to save and
-	 * restore itself.
-	 */
-	public void createFieldEditors()
-	{
-		//addField(new DirectoryFieldEditor(P_PATH, "&Directory preference:", getFieldEditorParent()));
+    /**
+     * Creates the field editors. Field editors are abstractions of
+     * the common GUI blocks needed to manipulate various types
+     * of preferences. Each field editor knows how to save and
+     * restore itself.
+     */
+    public void createFieldEditors()
+    {
+        //addField(new DirectoryFieldEditor(P_PATH, "&Directory preference:", getFieldEditorParent()));
 
-		addField(new BooleanFieldEditor(P_PACKAGEEXPLORER, "Show java files in Package Explorer", getFieldEditorParent()));
-		addField(new BooleanFieldEditor(P_FOCUSINNAVIGATOR, "Don't focus files in navigator window", getFieldEditorParent()));
+        addField(new BooleanFieldEditor(P_PACKAGEEXPLORER, "Show java files in Package Explorer", getFieldEditorParent()));
+        addField(new BooleanFieldEditor(P_FOCUSINNAVIGATOR, "Don't focus files in navigator window", getFieldEditorParent()));
+        addField(new BooleanFieldEditor(P_CURENTLY_OPEN_ON_TOP, "Boost search priority for resources that are currently open", getFieldEditorParent()));
 
-		addField(new RadioGroupFieldEditor(
-			P_DISPLAYRESULTS,
-			"Display path information in search result list:",
-			1,
-			new String[][] { { "&Compact", "compact" }, {
-				"&Tabular", "tabular" }
-		}, getFieldEditorParent()));
+        addField(new RadioGroupFieldEditor(
+            P_DISPLAYRESULTS,
+            "Display path information in search result list:",
+            1,
+            new String[][] { { "&Compact", "compact" }, {
+                "&Tabular", "tabular" }
+        }, getFieldEditorParent()));
 
-		addField(new StringFieldEditor(P_FOLDERS, "Excluded folder patterns \n(comma separated, wildcard * allowed):", getFieldEditorParent()));
+        addField(new StringFieldEditor(P_FOLDERS, "Excluded folder patterns \n(comma separated, wildcard * allowed):", getFieldEditorParent()));
 
-		addField(new StringFieldEditor(P_FILE_EXTENSIONS, "Excluded filenames that end with:", getFieldEditorParent()));
-	}
-	
+        addField(new StringFieldEditor(P_FILE_EXTENSIONS, "Excluded filenames that end with:", getFieldEditorParent()));
+    }
+    
 
-	public void init(IWorkbench workbench)	{
-	}
-	
+    public void init(IWorkbench workbench)	{
+    }
+    
     /* (non-Javadoc)
      * @see org.eclipse.jface.preference.IPreferencePage#performOk()
      */

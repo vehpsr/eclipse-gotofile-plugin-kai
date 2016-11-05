@@ -24,6 +24,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer
         IPreferenceStore store = GotoFileE30Plugin.getDefault().getPreferenceStore();
 		store.setDefault(GotoFilePreferencePage.P_PACKAGEEXPLORER, false);
 		store.setDefault(GotoFilePreferencePage.P_FOCUSINNAVIGATOR, true);
+		store.setDefault(GotoFilePreferencePage.P_CURENTLY_OPEN_ON_TOP, false);
 		store.setDefault(GotoFilePreferencePage.P_DISPLAYRESULTS, "compact");
 		store.setDefault(GotoFilePreferencePage.P_FOLDERS, "classes,target,bin,.git");
 		store.setDefault(GotoFilePreferencePage.P_FILE_EXTENSIONS, ".class,.jar,.obj,.exe");

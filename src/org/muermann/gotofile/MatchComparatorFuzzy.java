@@ -45,6 +45,11 @@ public class MatchComparatorFuzzy implements Comparator
 		String r1Name = r1.getFile().getName();
 		String r2Name = r2.getFile().getName();
 
+		if (r1.isOpen() && !r2.isOpen())
+			return -1;
+		if (r2.isOpen() && !r1.isOpen())
+			return 1;
+
 		if (r1.isCapsMatched() && !r2.isCapsMatched())
 			return -1;
 		if (r2.isCapsMatched() && !r1.isCapsMatched())

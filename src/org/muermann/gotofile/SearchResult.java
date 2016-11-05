@@ -32,13 +32,19 @@ public class SearchResult {
     private int matchConsecutive;
     private boolean capsMatched;
     public boolean resourcesSorted = false;
+    private boolean isOpen;
 
-    public SearchResult(IFile file,boolean capsMatched, int matchConsecutive, int matchPos)
+    public SearchResult(IFile file, boolean isOpen, boolean capsMatched, int matchConsecutive, int matchPos)
     {
         this.file = file;
+        this.isOpen = isOpen;
         this.matchPos = matchPos;
         this.matchConsecutive = matchConsecutive;
         this.capsMatched = capsMatched;
+    }
+
+    public boolean isOpen() {
+        return isOpen;
     }
 
     /**

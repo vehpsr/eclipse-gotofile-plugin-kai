@@ -20,7 +20,9 @@ package org.muermann.gotofile.actions;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.internal.resources.File;
@@ -37,6 +39,7 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PlatformUI;
@@ -65,6 +68,7 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
     private Pattern excludeFoldersPattern;
     private Pattern excludeFileExtensionsPattern;
     private Pattern searchPattern;
+    private Set currentlyOpenTabs;
 
     /**
      * We will cache window object in order to be able to provide parent shell
@@ -139,9 +143,10 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
                     continue;
                 }
                 boolean caseSensitiveMatch = searchPattern.matcher(resource).matches(); // CASE_SENSITIVE match
+                boolean isOpen = currentlyOpenTabs.contains(resource);
                 int lastMatchPos = resource.toLowerCase().lastIndexOf((searchTerm.charAt(searchTerm.length() - 1) + "").toLowerCase());
 
-                results.add(new SearchResult((IFile) resources[i], caseSensitiveMatch, matchConsecutive, lastMatchPos));
+                results.add(new SearchResult((IFile) resources[i], isOpen, caseSensitiveMatch, matchConsecutive, lastMatchPos));
             }
         }
     }
@@ -207,6 +212,8 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
         IWorkspace spc = GotoFileE30Plugin.getWorkspace();
         IWorkspaceRoot root = spc.getRoot();
 
+        initCurrentlyOpenTabs();
+
         excludeFoldersPattern = excludeFoldersPattern();
         excludeFileExtensionsPattern = excludeFileExtensionsPattern();
         searchPattern = searchPattern(search);
@@ -227,31 +234,57 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
         return results;
     }
 
+    private void initCurrentlyOpenTabs() {
+        currentlyOpenTabs = new HashSet();
+
+        boolean currentlyOpenOnTopEnabled = GotoFileE30Plugin.getDefault().getPreferenceStore().getBoolean(GotoFilePreferencePage.P_CURENTLY_OPEN_ON_TOP);
+        if (!currentlyOpenOnTopEnabled) {
+            return;
+        }
+
+        try {
+            IEditorReference[] ref = PlatformUI.getWorkbench()
+                    .getActiveWorkbenchWindow().getActivePage()
+                    .getEditorReferences();
+
+            for (IEditorReference reference : ref) {
+                IFile file = (IFile) reference.getEditorInput().getAdapter(IFile.class);
+                currentlyOpenTabs.add(file.getProjectRelativePath().toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private Pattern excludeFoldersPattern() {
         String folders = GotoFileE30Plugin.getDefault().getPreferenceStore().getString(GotoFilePreferencePage.P_FOLDERS);
         if (folders == null || folders.isEmpty()) {
             return FALSE_PATTERN;
         }
-        folders = folders.replace(".", "\\.");
-        String[] folder = folders.split(",");
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < folder.length; i++) {
-            if (folder[i].isEmpty()) {
-                continue;
+        try {
+            folders = folders.replace(".", "\\.");
+            String[] folder = folders.split(",");
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < folder.length; i++) {
+                if (folder[i].isEmpty()) {
+                    continue;
+                }
+                if (builder.length() != 0) {
+                    builder.append("|");
+                }
+                builder.append("(:?^|/?)");
+                // replace '*' with 'any word character'. works at start and end position (middle case not supported).
+                builder.append(folder[i].replace("*", "[-+=a-zA-Z0-9_()!,.]+?"));
+                builder.append("(:?$|/?)");
             }
-            if (builder.length() != 0) {
-                builder.append("|");
+            if (builder.length() == 0) {
+                return FALSE_PATTERN;
             }
-            builder.append("\\b");
-            // replace '*' with 'any word character'. works at start and end position (middle case not supported).
-            builder.append(folder[i].replace("*", "[-+=a-zA-Z0-9_()!,.]+?"));
-            builder.append("\\b");
-
-        }
-        if (builder.length() == 0) {
+            return Pattern.compile(builder.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
             return FALSE_PATTERN;
         }
-        return Pattern.compile(builder.toString());
     }
 
     private Pattern excludeFileExtensionsPattern() {
@@ -259,23 +292,28 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
         if (files == null || files.isEmpty()) {
             return FALSE_PATTERN;
         }
-        files = files.replace("*", "").replace(".", "\\.");
-        String[] file = files.split(",");
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < file.length; i++) {
-            if (file[i].isEmpty()) {
-                continue;
+        try {
+            files = files.replace("*", "").replace(".", "\\.");
+            String[] file = files.split(",");
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < file.length; i++) {
+                if (file[i].isEmpty()) {
+                    continue;
+                }
+                if (builder.length() != 0) {
+                    builder.append("|");
+                }
+                // no regex supported syntax, only 'ends with extension'
+                builder.append("^.*").append(file[i]).append("$");
             }
-            if (builder.length() != 0) {
-                builder.append("|");
+            if (builder.length() == 0) {
+                return FALSE_PATTERN;
             }
-            // no regex supported syntax, only 'ends with extension'
-            builder.append("^.*").append(file[i]).append("$");
-        }
-        if (builder.length() == 0) {
+            return Pattern.compile(builder.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
             return FALSE_PATTERN;
         }
-        return Pattern.compile(builder.toString());
     }
 
     private Pattern searchPattern(String searchTerm) {
@@ -289,7 +327,12 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
             builder.append(c);
         }
         builder.append(".*$");
-        return Pattern.compile(builder.toString());
+        try {
+            return Pattern.compile(builder.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return FALSE_PATTERN;
+        }
     }
 
     /* (non-Javadoc)

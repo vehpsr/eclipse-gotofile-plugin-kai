@@ -26,84 +26,83 @@ import org.eclipse.core.resources.IFile;
  *
  * Window - Preferences - Java - Code Style - Code Templates
  */
-public class SearchResult
-{
-	private IFile file;
-	private int matchPos;
-	private int matchConsecutive;
-	private boolean allCapsMatched;
-	public boolean resourcesSorted = false;
+public class SearchResult {
+    private IFile file;
+    private int matchPos;
+    private int matchConsecutive;
+    private boolean capsMatched;
+    public boolean resourcesSorted = false;
 
-	public SearchResult(IFile file, int matchPos, int matchConsecutive, boolean allCapsMatched)
-	{
-		this.file = file;
-		this.matchPos = matchPos;
-		this.matchConsecutive = matchConsecutive;
-		this.allCapsMatched = allCapsMatched;
-	}
+    public SearchResult(IFile file,boolean capsMatched, int matchConsecutive, int matchPos)
+    {
+        this.file = file;
+        this.matchPos = matchPos;
+        this.matchConsecutive = matchConsecutive;
+        this.capsMatched = capsMatched;
+    }
 
-	/**
-	 * @return
-	 */
-	public IFile getFile()
-	{
-		return file;
-	}
+    /**
+     * @return
+     */
+    public IFile getFile()
+    {
+        return file;
+    }
 
-	/**
-	 * @return
-	 */
-	public int getMatchConsecutive()
-	{
-		return matchConsecutive;
-	}
+    /**
+     * @return
+     */
+    public int getMatchConsecutive()
+    {
+        return matchConsecutive;
+    }
 
-	/**
-	 * @return
-	 */
-	public int getMatchPos()
-	{
-		return matchPos;
-	}
+    /**
+     * @return
+     */
+    public int getMatchPos()
+    {
+        return matchPos;
+    }
 
-	/**
-	 * @param file
-	 */
-	public void setFile(IFile file)
-	{
-		this.file = file;
-	}
+    /**
+     * @param file
+     */
+    public void setFile(IFile file)
+    {
+        this.file = file;
+    }
 
-	/**
-	 * @param i
-	 */
-	public void setMatchConsecutive(int i)
-	{
-		matchConsecutive = i;
-	}
+    /**
+     * @param i
+     */
+    public void setMatchConsecutive(int i)
+    {
+        matchConsecutive = i;
+    }
 
-	/**
-	 * @param i
-	 */
-	public void setMatchPos(int i)
-	{
-		matchPos = i;
-	}
+    /**
+     * @param i
+     */
+    public void setMatchPos(int i)
+    {
+        matchPos = i;
+    }
 
-	/**
-	 * @return
-	 */
-	public boolean isAllCapsMatched()
-	{
-		return allCapsMatched;
-	}
+    /**
+     * @return
+     */
+    public boolean isCapsMatched()
+    {
+        return capsMatched;
+    }
 
-	/**
-	 * @param b
-	 */
-	public void setAllCapsMatched(boolean b)
-	{
-		allCapsMatched = b;
-	}
+    /**
+     * @param b
+     */
+    public void setCapsMatched(boolean b)
+    {
+        capsMatched = b;
+    }
 
 }

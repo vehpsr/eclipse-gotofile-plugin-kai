@@ -1,26 +1,27 @@
 /*
-	GotoFile Eclipse Plugin - Quicksearch for files in Eclipse IDE
-	Copyright (C) 2004 Max Muermann
+    GotoFile Eclipse Plugin - Quicksearch for files in Eclipse IDE
+    Copyright (C) 2004 Max Muermann
 
-	This library is free software; you can redistribute it and/or
-	modify it under the terms of the GNU Lesser General Public
-	License as published by the Free Software Foundation; either
-	version 2.1 of the License, or (at your option) any later version.
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-	This library is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Lesser General Public License for more details.
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public
-	License along with this library; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 package org.muermann.gotofile.actions;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.internal.resources.File;
 import org.eclipse.core.resources.IContainer;
@@ -39,11 +40,10 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PlatformUI;
-import org.muermann.gotofile.FilenameExclusionFilter;
 import org.muermann.gotofile.GotoFileE30Plugin;
 import org.muermann.gotofile.MatchComparatorFuzzy;
-import org.muermann.gotofile.PathExclusionFilter;
 import org.muermann.gotofile.SearchResult;
+import org.muermann.gotofile.preferences.GotoFilePreferencePage;
 import org.muermann.gotofile.ui.SearchWindow;
 
 /**
@@ -51,206 +51,260 @@ import org.muermann.gotofile.ui.SearchWindow;
  * be created by the workbench and shown in the UI. When the user tries to use
  * the action, this delegate will be created and execution will be delegated to
  * it.
- * 
+ *
  * @see IWorkbenchWindowActionDelegate
  */
-public class GotoFileAction implements IWorkbenchWindowActionDelegate, IPropertyChangeListener
-{
-	IStructuredSelection selection;
+@SuppressWarnings({ "restriction", "rawtypes", "unchecked" })
+public class GotoFileAction implements IWorkbenchWindowActionDelegate, IPropertyChangeListener {
 
-	private SearchWindow dlg;
+    private static final Pattern FALSE_PATTERN = Pattern.compile("$patternThatWillAlwaysReturnFalse^");
 
-	private PathExclusionFilter pathFilter = new PathExclusionFilter();
+    IStructuredSelection selection;
 
-	/**
-	 * We will cache window object in order to be able to provide parent shell
-	 * for the message dialog.
-	 * 
-	 * @see IWorkbenchWindowActionDelegate#init
-	 */
-	public void init(IWorkbenchWindow window)
-	{
-		GotoFileE30Plugin.getDefault().getPreferenceStore().addPropertyChangeListener( this );
-	}
+    private SearchWindow dlg;
+    private Pattern excludeFoldersPattern;
+    private Pattern excludeFileExtensionsPattern;
+    private Pattern searchPattern;
 
-	/**
-	 * The action has been activated. The argument of the method represents the
-	 * 'real' action sitting in the workbench UI.
-	 * 
-	 * @see IWorkbenchWindowActionDelegate#run
-	 */
-	public void run(IAction action)
-	{
-		if (null == dlg)
-		{
-			initDlg();
-		}
-		
-		// get current selectino
-    	ISelection sel = GotoFileE30Plugin.getActiveWorkbenchWindow().getSelectionService().getSelection();
-    	
-    	if (null != sel && sel instanceof TextSelection)
-    	{
-    		TextSelection ts = (TextSelection) sel;
-    		if (0!=ts.getLength())
-    			dlg.setSelection(ts.getText());
-    		else dlg.setSelection(null);
-    	}
-		
-		dlg.open();
-	}
+    /**
+     * We will cache window object in order to be able to provide parent shell
+     * for the message dialog.
+     *
+     * @see IWorkbenchWindowActionDelegate#init
+     */
+    public void init(IWorkbenchWindow window)
+    {
+        GotoFileE30Plugin.getDefault().getPreferenceStore().addPropertyChangeListener( this );
+    }
 
-	protected List processResourcesFuzzy(IResource[] resources, List results, String searchTerm) throws CoreException
-	{
+    /**
+     * The action has been activated. The argument of the method represents the
+     * 'real' action sitting in the workbench UI.
+     *
+     * @see IWorkbenchWindowActionDelegate#run
+     */
+    public void run(IAction action)
+    {
+        if (null == dlg)
+        {
+            initDlg();
+        }
 
-		for (int i = 0; i < resources.length; i++)
-		{
-		    boolean valid = true;
-			if (resources[i] instanceof IContainer)
-			{
+        // get current selectino
+        ISelection sel = GotoFileE30Plugin.getActiveWorkbenchWindow().getSelectionService().getSelection();
 
-				if (resources[i] instanceof IProject)
-				{
-					if (!((IProject)resources[i]).isOpen())
-					{
-						continue;
-					}
-				}
-				
-			    // check for project
-			    if ( null != dlg.getEditorProject() && resources[i] instanceof IProject && dlg.isSearchInProject())
-			    {
-			        if (!resources[i].equals(dlg.getEditorProject()))
-			        {
-			            valid = false;
-			        }
-			    }
-			    
-				if ( valid && pathFilter.select(resources[i]))
-				{
-					results = processResourcesFuzzy(((IContainer)resources[i]).members(), results, searchTerm);
-				}
-				
-			} else if (resources[i] instanceof File)
-			{
-				if (resources[i].exists())
-				{
-					String nameNoUpper = ((File)resources[i]).getProjectRelativePath().toString();
-					String name = nameNoUpper.toUpperCase();
-					String term = searchTerm;
+        if (null != sel && sel instanceof TextSelection)
+        {
+            TextSelection ts = (TextSelection) sel;
+            if (0!=ts.getLength())
+                dlg.setSelection(ts.getText());
+            else dlg.setSelection(null);
+        }
 
-					String capsString = "";
+        dlg.open();
+    }
 
-					// construct caps-only string
-					for (int k = 0; k < nameNoUpper.length(); k++)
-					{
-						if (nameNoUpper.charAt(k) >= 'A' && nameNoUpper.charAt(k) <= 'Z')
-						{
-							capsString += nameNoUpper.substring(k, k + 1);
-						}
-					}
+    protected void processResourcesFuzzy(IResource[] resources, List results, String searchTerm) throws CoreException {
+        for (int i = 0; i < resources.length; i++) {
+            if (resources[i] instanceof IContainer) {
+                if (resources[i] instanceof IProject) {
+                    if (!((IProject)resources[i]).isOpen()) {
+                        continue;
+                    }
+                }
 
-					int matchPos = 0;
-					int matchConsecutive = 0;
-					int index = 0;
-					int charIndex = -1;
+                // check for project
+                if ( null != dlg.getEditorProject() && resources[i] instanceof IProject && dlg.isSearchInProject()) {
+                    if (!resources[i].equals(dlg.getEditorProject())) {
+                        continue;
+                    }
+                }
 
-					while (term.length() != 0 && (charIndex = name.indexOf(term.charAt(0))) != -1)
-					{
-						index += charIndex;
-						matchPos += index;
-						if (charIndex == 0)
-						{
-							matchConsecutive++;
-						}
+                if (filterOutByFolderPattern(resources[i])) {
+                    continue;
+                }
 
-						term = term.substring(1);
-						name = name.substring(charIndex + 1);
-						nameNoUpper = nameNoUpper.substring(charIndex + 1);
-					}
+                processResourcesFuzzy(((IContainer)resources[i]).members(), results, searchTerm);
+            } else if (resources[i] instanceof File) {
+                if (!resources[i].exists()) {
+                    continue;
+                }
+                if (filterOutByFileExtension(resources[i])) {
+                    continue;
+                }
 
-					if (term.length() == 0)
-					{
-						results.add(new SearchResult((IFile)resources[i], matchPos, matchConsecutive, capsString.equals(searchTerm.toUpperCase())));
-					}
-				}
-			}
-		}
-		return results;
-	}
+                String resource = ((File)resources[i]).getProjectRelativePath().toString();
+                int matchConsecutive = matchConsecutive(resource, searchTerm); // CASE_INSENSITIVE match
+                if (matchConsecutive < 0) {
+                    continue;
+                }
+                boolean caseSensitiveMatch = searchPattern.matcher(resource).matches(); // CASE_SENSITIVE match
+                int lastMatchPos = resource.toLowerCase().lastIndexOf((searchTerm.charAt(searchTerm.length() - 1) + "").toLowerCase());
 
-	/**
-	 * Selection in the workbench has been changed. We can change the state of
-	 * the 'real' action here if we want, but this can only happen after the
-	 * delegate has been created.
-	 * 
-	 * @see IWorkbenchWindowActionDelegate#selectionChanged
-	 */
-	public void selectionChanged(IAction action, ISelection selection)
-	{
-	    if ( selection instanceof IStructuredSelection)
-	        this.selection = (IStructuredSelection) selection;
-	    else
-	        this.selection = null;
-	}
+                results.add(new SearchResult((IFile) resources[i], caseSensitiveMatch, matchConsecutive, lastMatchPos));
+            }
+        }
+    }
 
-	/**
-	 * We can use this method to dispose of any system resources we previously
-	 * allocated.
-	 * 
-	 * @see IWorkbenchWindowActionDelegate#dispose
-	 */
-	public void dispose()
-	{
-	}
+    private int matchConsecutive(String resourceName, String searchTerm) {
+        String name = resourceName.toUpperCase();
+        String term = searchTerm.toUpperCase();
 
-	public List runSearch(String search)
-	{
-		IWorkspace spc = GotoFileE30Plugin.getWorkspace();
+        int matchConsecutive = 0;
+        int charIndex = -1;
 
-		IWorkspaceRoot root = spc.getRoot();
+        while (term.length() != 0 && (charIndex = name.indexOf(term.charAt(0))) != -1) {
+            if (charIndex == 0 && matchConsecutive > 0) {
+                matchConsecutive++;
+            }
 
-		List results = new ArrayList();
+            term = term.substring(1);
+            name = name.substring(charIndex + 1);
+        }
 
-		if (results.isEmpty())
-		{
-			try
-			{
-				results = processResourcesFuzzy(root.members(), results, search.toUpperCase());
-			} catch (CoreException e1)
-			{
-				e1.printStackTrace();
-			}
+        if (term.length() != 0) {
+            return -1;
+        }
+        return matchConsecutive;
+    }
 
-			FilenameExclusionFilter filter = new FilenameExclusionFilter();
-			results = filter.filter(results);
+    private boolean filterOutByFolderPattern(IResource iResource) {
+        String resource = iResource.getProjectRelativePath().toString();
+        return excludeFoldersPattern.matcher(resource).find();
+    }
 
-			Collections.sort(results, new MatchComparatorFuzzy());
-		}
+    private boolean filterOutByFileExtension(IResource iResource) {
+        String resource = iResource.getProjectRelativePath().toString();
+        return excludeFileExtensionsPattern.matcher(resource).matches();
+    }
 
-		/*
-		for (Iterator it = results.iterator(); it.hasNext();)
-		{
-			SearchResult res = (SearchResult)it.next();
-		}
-		*/
+    /**
+     * Selection in the workbench has been changed. We can change the state of
+     * the 'real' action here if we want, but this can only happen after the
+     * delegate has been created.
+     *
+     * @see IWorkbenchWindowActionDelegate#selectionChanged
+     */
+    public void selectionChanged(IAction action, ISelection selection)
+    {
+        if ( selection instanceof IStructuredSelection)
+            this.selection = (IStructuredSelection) selection;
+        else
+            this.selection = null;
+    }
 
-		return results;
-	}
+    /**
+     * We can use this method to dispose of any system resources we previously
+     * allocated.
+     *
+     * @see IWorkbenchWindowActionDelegate#dispose
+     */
+    public void dispose()
+    {
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.util.IPropertyChangeListener#propertyChange(org.eclipse.jface.util.PropertyChangeEvent)
-	 */
-	public void propertyChange(PropertyChangeEvent event)
-	{
-		// rebuild the dialog
-		initDlg();
-	}
-	
-	public void initDlg()
-	{
-		this.dlg = new SearchWindow(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), 7, this);
-		dlg.setAction(this);
-	} 
+    public List runSearch(String search) {
+        IWorkspace spc = GotoFileE30Plugin.getWorkspace();
+        IWorkspaceRoot root = spc.getRoot();
+
+        excludeFoldersPattern = excludeFoldersPattern();
+        excludeFileExtensionsPattern = excludeFileExtensionsPattern();
+        searchPattern = searchPattern(search);
+
+        List results = new ArrayList();
+
+        try {
+            processResourcesFuzzy(root.members(), results, search);
+        } catch (CoreException e1) {
+            e1.printStackTrace();
+        }
+
+        Collections.sort(results, MatchComparatorFuzzy.getInstance());
+
+        if (results.size() > 100) {
+            return results.subList(0, 100);
+        }
+        return results;
+    }
+
+    private Pattern excludeFoldersPattern() {
+        String folders = GotoFileE30Plugin.getDefault().getPreferenceStore().getString(GotoFilePreferencePage.P_FOLDERS);
+        if (folders == null || folders.isEmpty()) {
+            return FALSE_PATTERN;
+        }
+        folders = folders.replace(".", "\\.");
+        String[] folder = folders.split(",");
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < folder.length; i++) {
+            if (folder[i].isEmpty()) {
+                continue;
+            }
+            if (builder.length() != 0) {
+                builder.append("|");
+            }
+            builder.append("\\b");
+            // replace '*' with 'any word character'. works at start and end position (middle case not supported).
+            builder.append(folder[i].replace("*", "[-+=a-zA-Z0-9_()!,.]+?"));
+            builder.append("\\b");
+
+        }
+        if (builder.length() == 0) {
+            return FALSE_PATTERN;
+        }
+        return Pattern.compile(builder.toString());
+    }
+
+    private Pattern excludeFileExtensionsPattern() {
+        String files = GotoFileE30Plugin.getDefault().getPreferenceStore().getString(GotoFilePreferencePage.P_FILE_EXTENSIONS);
+        if (files == null || files.isEmpty()) {
+            return FALSE_PATTERN;
+        }
+        files = files.replace("*", "").replace(".", "\\.");
+        String[] file = files.split(",");
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < file.length; i++) {
+            if (file[i].isEmpty()) {
+                continue;
+            }
+            if (builder.length() != 0) {
+                builder.append("|");
+            }
+            // no regex supported syntax, only 'ends with extension'
+            builder.append("^.*").append(file[i]).append("$");
+        }
+        if (builder.length() == 0) {
+            return FALSE_PATTERN;
+        }
+        return Pattern.compile(builder.toString());
+    }
+
+    private Pattern searchPattern(String searchTerm) {
+        StringBuilder builder = new StringBuilder("^");
+        for (int i = 0; i < searchTerm.length(); i++) {
+            builder.append(".*");
+            String c = String.valueOf(searchTerm.charAt(i));
+            if (c.equals(".")) {
+                c = "\\.";
+            }
+            builder.append(c);
+        }
+        builder.append(".*$");
+        return Pattern.compile(builder.toString());
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.util.IPropertyChangeListener#propertyChange(org.eclipse.jface.util.PropertyChangeEvent)
+     */
+    public void propertyChange(PropertyChangeEvent event)
+    {
+        // rebuild the dialog
+        initDlg();
+    }
+
+    public void initDlg()
+    {
+        this.dlg = new SearchWindow(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), 7, this);
+        dlg.setAction(this);
+    }
 
 }

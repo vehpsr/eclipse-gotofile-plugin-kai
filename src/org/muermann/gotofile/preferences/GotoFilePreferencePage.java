@@ -29,7 +29,7 @@ public class GotoFilePreferencePage extends FieldEditorPreferencePage implements
 	public static final String P_PACKAGEEXPLORER = "packageExplorer";
 	public static final String P_DISPLAYRESULTS = "displayResults";
 	public static final String P_FOLDERS = "folders";
-	public static final String P_FILES = "filenames";
+	public static final String P_FILE_EXTENSIONS = "filenames";
 	public static final String P_FOCUSINNAVIGATOR = "focusinnavigator";
 
 	public GotoFilePreferencePage()
@@ -48,8 +48,8 @@ public class GotoFilePreferencePage extends FieldEditorPreferencePage implements
 		store.setDefault(P_PACKAGEEXPLORER, false);
 		store.setDefault(P_FOCUSINNAVIGATOR, true);
 		store.setDefault(P_DISPLAYRESULTS, "compact");
-		store.setDefault(P_FOLDERS, "CVS,classes");
-		store.setDefault(P_FILES, "*.class,*.jar,*.obj,*.exe");
+		store.setDefault(P_FOLDERS, "classes,target,bin,.git");
+		store.setDefault(P_FILE_EXTENSIONS, ".class,.jar,.obj,.exe");
 	}
 
 	/**
@@ -73,9 +73,9 @@ public class GotoFilePreferencePage extends FieldEditorPreferencePage implements
 				"&Tabular", "tabular" }
 		}, getFieldEditorParent()));
 
-		addField(new StringFieldEditor(P_FOLDERS, "Excluded folder patterns \n(comma separated, wildcards * \nand ? are allowed, or specify relative\n project paths: JavaSource/org/Test*):", getFieldEditorParent()));
+		addField(new StringFieldEditor(P_FOLDERS, "Excluded folder patterns \n(comma separated, wildcard * allowed):", getFieldEditorParent()));
 
-		addField(new StringFieldEditor(P_FILES, "Excluded filename patterns \n(comma separated, wildcards * \nand ? are allowed):", getFieldEditorParent()));
+		addField(new StringFieldEditor(P_FILE_EXTENSIONS, "Excluded filenames that end with:", getFieldEditorParent()));
 	}
 	
 

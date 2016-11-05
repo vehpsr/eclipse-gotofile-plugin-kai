@@ -42,25 +42,29 @@ public class MatchComparatorFuzzy implements Comparator
 	{
 		SearchResult r1 = (SearchResult)o1;
 		SearchResult r2 = (SearchResult)o2;
+		String r1Name = r1.getFile().getName();
+		String r2Name = r2.getFile().getName();
 
-		if (r1.isAllCapsMatched() && !r2.isAllCapsMatched())
+		if (r1.isCapsMatched() && !r2.isCapsMatched())
 			return -1;
-		if (r2.isAllCapsMatched() && !r1.isAllCapsMatched())
+		if (r2.isCapsMatched() && !r1.isCapsMatched())
 			return 1;
 
-		if (r1.getMatchConsecutive() == r2.getMatchConsecutive())
-		{
-			return r1.getMatchPos() == r2.getMatchPos() ? 0 : r1.getMatchPos() < r2.getMatchPos() ? -1 : 1;
-		}
+		if (r1.getMatchConsecutive() > r2.getMatchConsecutive())
+			return -1;
+		if (r2.getMatchConsecutive() > r1.getMatchConsecutive())
+			return 1;
 
-		if (r1.getMatchConsecutive() == r2.getMatchConsecutive())
-		{
-			if (r1.getFile().getName().length() < r1.getFile().getName().length())
-				return -1;
-			if (r1.getFile().getName().length() > r1.getFile().getName().length())
-				return 1;
-		}
+		if (r1Name.contains("Test.") && !r2Name.contains("Test."))
+			return 1;
+		if (r2Name.contains("Test.") && !r1Name.contains("Test."))
+			return -1;
 
-		return r1.getMatchConsecutive() == r2.getMatchConsecutive() ? 0 : r1.getMatchConsecutive() > r2.getMatchConsecutive() ? -1 : 1;
+		if (r1.getMatchPos() > r2.getMatchPos())
+			return -1;
+		if (r2.getMatchPos() > r1.getMatchPos())
+			return 1;
+
+		return r1Name.length() - r2Name.length();
 	}
 }

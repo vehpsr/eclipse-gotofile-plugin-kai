@@ -141,11 +141,11 @@ public class SearchWindow extends SelectionDialog
     protected Control createDialogArea(Composite parent)
     {
         dialogArea = (Composite) super.createDialogArea(parent);
-        getShell().setText("Goto File 1.3.5 + 1");
+        getShell().setText("Goto File 1.3.5 + 2");
         GridData data = new GridData(768);
         Label l = new Label(dialogArea, 0);
         l
-                .setText("Pattern (any sequence of characters, all CAPS forces CamelCase matching):");
+                .setText("Pattern (any sequence of characters, case matching boosts search priority):");
         data = new GridData(768);
         l.setLayoutData(data);
 

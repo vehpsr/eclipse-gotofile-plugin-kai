@@ -65,11 +65,11 @@ public class MatchComparatorFuzzy implements Comparator
 		if (r2Name.contains("Test.") && !r1Name.contains("Test."))
 			return -1;
 
-		if (r1.getMatchPos() > r2.getMatchPos())
+		if (r1Name.length() < r2Name.length())
 			return -1;
-		if (r2.getMatchPos() > r1.getMatchPos())
+		if (r2Name.length() < r1Name.length())
 			return 1;
 
-		return r1Name.length() - r2Name.length();
+		return r2.getMatchPos() - r1.getMatchPos();
 	}
 }

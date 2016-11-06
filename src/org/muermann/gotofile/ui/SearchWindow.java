@@ -64,7 +64,7 @@ import org.muermann.gotofile.preferences.GotoFilePreferencePage;
 
 /**
  * The search window
- * 
+ *
  * @author max
  * @version 0.1
  */
@@ -87,7 +87,7 @@ public class SearchWindow extends SelectionDialog
     private boolean compact = true;
 
     private boolean focus = true;
-    
+
     private String selection;
 
     Text pattern;
@@ -116,7 +116,7 @@ public class SearchWindow extends SelectionDialog
     private GotoFileAction action;
 
     int returnCode = 1;
-    
+
     private Button searchInProject;
 
     private boolean isSearchInProject = false;
@@ -144,8 +144,8 @@ public class SearchWindow extends SelectionDialog
         getShell().setText("Goto File 1.3.5 + 2");
         GridData data = new GridData(768);
         Label l = new Label(dialogArea, 0);
-        l
-                .setText("Pattern (any sequence of characters, case matching boosts search priority):");
+        l.setText("Pattern (any sequence of characters, case matching boosts search priority; " +
+                "'.' at the beginning of search will boost priority for currently open tabs):");
         data = new GridData(768);
         l.setLayoutData(data);
 
@@ -264,21 +264,21 @@ public class SearchWindow extends SelectionDialog
 
         /*
          * folderNames.addSelectionListener(new SelectionAdapter() {
-         * 
+         *
          * public void widgetDefaultSelected(SelectionEvent e) { okPressed(); }
-         * 
+         *
          * });
          */
         Dialog.applyDialogFont(dialogArea);
-        
+
         if (null != selection && !selection.equals(value))
         {
-        	value = selection;
-        	if (null != pattern && !pattern.isDisposed())
-        	{
-        		pattern.setText(value);
-        		pattern.selectAll();
-        	}
+            value = selection;
+            if (null != pattern && !pattern.isDisposed())
+            {
+                pattern.setText(value);
+                pattern.selectAll();
+            }
             runSearch(value);
         } else if (null != value)
         {
@@ -290,11 +290,11 @@ public class SearchWindow extends SelectionDialog
         {
             setResultList(resultList);
         }
-        
+
         // TODO: add project scope control
         searchInProject = new Button( dialogArea, SWT.CHECK );
         searchInProject.setText("Search in current &Project");
-        
+
         searchInProject.addSelectionListener( new SelectionListener () {
 
             public void widgetSelected(SelectionEvent e)
@@ -308,7 +308,7 @@ public class SearchWindow extends SelectionDialog
             {
                 // TODO Auto-generated method stub
             }});
-        
+
         searchInProject.setSelection( isSearchInProject );
         searchInProject.setEnabled( null != getEditorProject() );
 
@@ -448,9 +448,9 @@ public class SearchWindow extends SelectionDialog
 
     private void runSearch(String search)
     {
-    	value = search;
-        
-    	// kick off search by notifying listener
+        value = search;
+
+        // kick off search by notifying listener
         if (null != value && value.length() != 0)
         {
             Runnable r = new Runnable()
@@ -495,7 +495,7 @@ public class SearchWindow extends SelectionDialog
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.dialogs.Dialog#okPressed()
      */
     protected void okPressed()
@@ -508,7 +508,7 @@ public class SearchWindow extends SelectionDialog
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.window.Window#close()
      */
     public boolean close()
@@ -521,7 +521,7 @@ public class SearchWindow extends SelectionDialog
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.window.Window#initializeBounds()
      */
     protected void initializeBounds()
@@ -532,13 +532,13 @@ public class SearchWindow extends SelectionDialog
             getShell().setBounds(oldBounds);
         }
     }
-    
+
     public boolean isSearchInProject()
     {
         /*if (null == searchInProject || !searchInProject.isEnabled())
             return false;
         return searchInProject.getSelection();*/
-    	return isSearchInProject;
+        return isSearchInProject;
     }
 
     /**
@@ -548,8 +548,8 @@ public class SearchWindow extends SelectionDialog
     {
         return searchInProject;
     }
-    
-    
+
+
     public IProject getEditorProject() {
 
         IWorkbenchPart activePart= GotoFileE30Plugin.getActiveWorkbenchWindow().getActivePage().getActivePart();
@@ -563,9 +563,9 @@ public class SearchWindow extends SelectionDialog
         return null;
     }
 
-	public void setSelection(String text)
-	{
-		this.selection = text;
-	}   
-    
+    public void setSelection(String text)
+    {
+        this.selection = text;
+    }
+
 }

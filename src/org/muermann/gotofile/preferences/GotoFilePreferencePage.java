@@ -11,10 +11,10 @@ import org.muermann.gotofile.GotoFileE30Plugin;
 
 /**
  * This class represents a preference page that
- * is contributed to the Preferences dialog. By 
+ * is contributed to the Preferences dialog. By
  * subclassing <samp>FieldEditorPreferencePage</samp>, we
  * can use the field support built into JFace that allows
- * us to create a page that is small and knows how to 
+ * us to create a page that is small and knows how to
  * save, restore and apply itself.
  * <p>
  * This page is used to modify preferences only. They
@@ -31,7 +31,6 @@ public class GotoFilePreferencePage extends FieldEditorPreferencePage implements
     public static final String P_FOLDERS = "folders";
     public static final String P_FILE_EXTENSIONS = "filenames";
     public static final String P_FOCUSINNAVIGATOR = "focusinnavigator";
-    public static final String P_CURENTLY_OPEN_ON_TOP = "curentlyopenontop";
 
     public GotoFilePreferencePage()
     {
@@ -48,7 +47,6 @@ public class GotoFilePreferencePage extends FieldEditorPreferencePage implements
         IPreferenceStore store = getPreferenceStore();
         store.setDefault(P_PACKAGEEXPLORER, false);
         store.setDefault(P_FOCUSINNAVIGATOR, true);
-        store.setDefault(P_CURENTLY_OPEN_ON_TOP, false);
         store.setDefault(P_DISPLAYRESULTS, "compact");
         store.setDefault(P_FOLDERS, "classes,target,bin,.git");
         store.setDefault(P_FILE_EXTENSIONS, ".class,.jar,.obj,.exe");
@@ -66,7 +64,6 @@ public class GotoFilePreferencePage extends FieldEditorPreferencePage implements
 
         addField(new BooleanFieldEditor(P_PACKAGEEXPLORER, "Show java files in Package Explorer", getFieldEditorParent()));
         addField(new BooleanFieldEditor(P_FOCUSINNAVIGATOR, "Don't focus files in navigator window", getFieldEditorParent()));
-        addField(new BooleanFieldEditor(P_CURENTLY_OPEN_ON_TOP, "Boost search priority for resources that are currently open", getFieldEditorParent()));
 
         addField(new RadioGroupFieldEditor(
             P_DISPLAYRESULTS,
@@ -80,16 +77,16 @@ public class GotoFilePreferencePage extends FieldEditorPreferencePage implements
 
         addField(new StringFieldEditor(P_FILE_EXTENSIONS, "Excluded filenames that end with:", getFieldEditorParent()));
     }
-    
+
 
     public void init(IWorkbench workbench)	{
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.jface.preference.IPreferencePage#performOk()
      */
     /*public boolean performOk()
-    {        
+    {
         boolean b = super.performOk();
         GotoFileE30Plugin.getDefault().savePluginPreferences();
         return b;

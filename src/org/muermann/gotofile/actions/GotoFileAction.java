@@ -212,7 +212,14 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
         IWorkspace spc = GotoFileE30Plugin.getWorkspace();
         IWorkspaceRoot root = spc.getRoot();
 
-        initCurrentlyOpenTabs();
+        initCurrentlyOpenTabs(search);
+        if (search.startsWith(".")) {
+            search = search.substring(1);
+        }
+
+        if (search.isEmpty()) {
+            return new ArrayList();
+        }
 
         excludeFoldersPattern = excludeFoldersPattern();
         excludeFileExtensionsPattern = excludeFileExtensionsPattern();
@@ -234,10 +241,10 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
         return results;
     }
 
-    private void initCurrentlyOpenTabs() {
+    private void initCurrentlyOpenTabs(String searchTerm) {
         currentlyOpenTabs = new HashSet();
 
-        boolean currentlyOpenOnTopEnabled = GotoFileE30Plugin.getDefault().getPreferenceStore().getBoolean(GotoFilePreferencePage.P_CURENTLY_OPEN_ON_TOP);
+        boolean currentlyOpenOnTopEnabled = searchTerm.startsWith(".");
         if (!currentlyOpenOnTopEnabled) {
             return;
         }

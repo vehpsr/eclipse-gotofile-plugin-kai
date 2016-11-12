@@ -9,9 +9,9 @@ Type `Ctrl+Alt+N` to use.
 Ex.: `koin` will be matched to `knockout/index.html`
 
 ## Installation
-Download the raw org.muermann.gotofile_1.3.5.jar from this repo and copy it to the plugins folder of your Eclipse installation.
+Download the raw org.muermann.gotofile_1.3.5.jar from this repo and copy it to the 'plugins' folder (or 'dropins' for Eclipse 4.5+) of your Eclipse installation.
 
-This has been tested with Eclipse Luna and Mars.
+This has been tested with Eclipse Luna, Mars and Neon.
 
 ## License
 [LGPL][lgpl]

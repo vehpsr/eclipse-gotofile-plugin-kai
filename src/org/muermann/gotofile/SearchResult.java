@@ -27,24 +27,41 @@ import org.eclipse.core.resources.IFile;
  * Window - Preferences - Java - Code Style - Code Templates
  */
 public class SearchResult {
+
+    private int order;
+
     private IFile file;
     private int matchPos;
     private int matchConsecutive;
     private boolean capsMatched;
     public boolean resourcesSorted = false;
     private boolean isOpen;
+    private int matchConsecutiveName;
 
-    public SearchResult(IFile file, boolean isOpen, boolean capsMatched, int matchConsecutive, int matchPos)
-    {
+    public SearchResult(IFile file, int order) {
+        this.file = file;
+        this.order = order;
+    }
+
+    public SearchResult(IFile file, boolean isOpen, boolean capsMatched, int matchConsecutiveName, int matchConsecutive, int matchPos) {
         this.file = file;
         this.isOpen = isOpen;
         this.matchPos = matchPos;
         this.matchConsecutive = matchConsecutive;
+        this.matchConsecutiveName = matchConsecutiveName;
         this.capsMatched = capsMatched;
+    }
+
+    public int getOrder() {
+        return order;
     }
 
     public boolean isOpen() {
         return isOpen;
+    }
+
+    public int getMatchConsecutiveName() {
+        return matchConsecutiveName;
     }
 
     /**

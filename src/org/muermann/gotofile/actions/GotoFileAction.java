@@ -30,7 +30,6 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
@@ -68,7 +67,7 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
     private Pattern excludeFoldersPattern;
     private Pattern excludeFileExtensionsPattern;
     private Pattern searchPattern;
-    private Set currentlyOpenTabs;
+    private Set<String> currentlyOpenTabs;
 
     /**
      * We will cache window object in order to be able to provide parent shell
@@ -130,7 +129,8 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
 
                 processResourcesFuzzy(((IContainer)resources[i]).members(), results, searchTerm);
             } else if (resources[i] instanceof File) {
-                if (!resources[i].exists()) {
+                IFile file = (IFile) resources[i];
+                if (!file.exists()) {
                     continue;
                 }
                 if (filterOutByFileExtension(resources[i])) {
@@ -144,9 +144,10 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
                 }
                 boolean caseSensitiveMatch = searchPattern.matcher(resource).matches(); // CASE_SENSITIVE match
                 boolean isOpen = currentlyOpenTabs.contains(resource);
+                int matchConsecutiveName = matchConsecutive(file.getName(), searchTerm);
                 int lastMatchPos = resource.toLowerCase().lastIndexOf((searchTerm.charAt(searchTerm.length() - 1) + "").toLowerCase());
 
-                results.add(new SearchResult((IFile) resources[i], isOpen, caseSensitiveMatch, matchConsecutive, lastMatchPos));
+                results.add(new SearchResult(file, isOpen, caseSensitiveMatch, matchConsecutiveName, matchConsecutive, lastMatchPos));
             }
         }
     }
@@ -209,16 +210,16 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
     }
 
     public List runSearch(String search) {
-        IWorkspace spc = GotoFileE30Plugin.getWorkspace();
-        IWorkspaceRoot root = spc.getRoot();
-
-        initCurrentlyOpenTabs(search);
-        if (search.startsWith(".")) {
-            search = search.substring(1);
+        currentlyOpenTabs = new HashSet<String>();
+        if (search == null || search.isEmpty() || search.startsWith(".")) {
+            List<SearchResult> currentlyOpenTabs = initCurrentlyOpenTabs();
+            if (search == null || search.isEmpty() || search.equals(".")) {
+                return sort(currentlyOpenTabs);
+            }
         }
 
-        if (search.isEmpty()) {
-            return new ArrayList();
+        if (search.startsWith(".")) {
+            search = search.substring(1);
         }
 
         excludeFoldersPattern = excludeFoldersPattern();
@@ -226,41 +227,41 @@ public class GotoFileAction implements IWorkbenchWindowActionDelegate, IProperty
         searchPattern = searchPattern(search);
 
         List results = new ArrayList();
-
+        IWorkspaceRoot root = GotoFileE30Plugin.getWorkspace().getRoot();
         try {
             processResourcesFuzzy(root.members(), results, search);
         } catch (CoreException e1) {
             e1.printStackTrace();
         }
 
-        Collections.sort(results, MatchComparatorFuzzy.getInstance());
+        return sort(results);
+    }
 
-        if (results.size() > 100) {
+    private List sort(List results) {
+        Collections.sort(results, MatchComparatorFuzzy.getInstance());
+        if (results.size() > 100)
             return results.subList(0, 100);
-        }
         return results;
     }
 
-    private void initCurrentlyOpenTabs(String searchTerm) {
-        currentlyOpenTabs = new HashSet();
-
-        boolean currentlyOpenOnTopEnabled = searchTerm.startsWith(".");
-        if (!currentlyOpenOnTopEnabled) {
-            return;
-        }
-
+    private List<SearchResult> initCurrentlyOpenTabs() {
+        List<SearchResult> tabs = new ArrayList<SearchResult>();
         try {
             IEditorReference[] ref = PlatformUI.getWorkbench()
                     .getActiveWorkbenchWindow().getActivePage()
                     .getEditorReferences();
 
+            int pos = 0;
             for (IEditorReference reference : ref) {
                 IFile file = (IFile) reference.getEditorInput().getAdapter(IFile.class);
                 currentlyOpenTabs.add(file.getProjectRelativePath().toString());
+                tabs.add(new SearchResult(file, pos));
+                pos++;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return tabs;
     }
 
     private Pattern excludeFoldersPattern() {

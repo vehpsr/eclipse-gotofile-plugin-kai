@@ -450,19 +450,15 @@ public class SearchWindow extends SelectionDialog
     {
         value = search;
 
-        // kick off search by notifying listener
-        if (null != value && value.length() != 0)
+        Runnable r = new Runnable()
         {
-            Runnable r = new Runnable()
+            public void run()
             {
-                public void run()
-                {
-                    java.util.List results = action.runSearch(value);
-                    setResultList(results);
-                }
-            };
-            r.run();
-        }
+                java.util.List results = action.runSearch(value);
+                setResultList(results);
+            }
+        };
+        r.run();
     }
 
     /*
@@ -501,7 +497,7 @@ public class SearchWindow extends SelectionDialog
     protected void okPressed()
     {
         returnCode = 0;
-        value = pattern.getText();
+        value = null; // pattern.getText();
         openSelected();
         super.okPressed();
     }
@@ -514,7 +510,7 @@ public class SearchWindow extends SelectionDialog
     public boolean close()
     {
         oldBounds = getShell().getBounds();
-        value = pattern.getText();
+        value = null; // pattern.getText();
         selection = null;
         return super.close();
     }

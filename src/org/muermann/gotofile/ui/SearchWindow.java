@@ -430,8 +430,7 @@ public class SearchWindow extends SelectionDialog
                     org.eclipse.ui.ide.IDE.openEditor(page, file);
                 //page.openEditor(new FileEditorInput(file), null, true);
                 //page.openEditor(file);
-            } catch (CoreException x)
-            {
+            } catch (CoreException x) {
                 String title = "Error opening Editor"; //$NON-NLS-1$
                 String message = "Could not open Editor"; //$NON-NLS-1$
                 //WorkbenchPlugin.log(title, x.getStatus());
@@ -440,25 +439,15 @@ public class SearchWindow extends SelectionDialog
                         x.getStatus());
             }
 
-        } catch (PartInitException e1)
-        {
+        } catch (PartInitException e1) {
             e1.printStackTrace();
         }
     }
 
-    private void runSearch(String search)
-    {
+    private void runSearch(String search) {
         value = search;
-
-        Runnable r = new Runnable()
-        {
-            public void run()
-            {
-                java.util.List results = action.runSearch(value);
-                setResultList(results);
-            }
-        };
-        r.run();
+        java.util.List results = action.runSearch(search);
+        setResultList(results);
     }
 
     /*
